@@ -14,15 +14,15 @@ import {
   Timeline,
   List,
   Table,
-  Tag
+  Tag,
+  Upload,
+  message
 } from "antd";
 
-// import { , Button } from 'antd';
-// import moment from "moment";
 import axios from "axios";
 import { findIndex } from "lodash";
-
 import "./App.css";
+import { InboxOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 const { Content, Footer } = Layout;
@@ -30,58 +30,24 @@ const ButtonGroup = Button.Group;
 const { TextArea } = Input;
 const { Step } = Steps;
 const { Text } = Typography;
+const { Dragger } = Upload;
 
-function onPanelChange(value, mode) {
-  console.log(value, mode);
-}
-
-// function getMonthData(value) {
-//   if (value.month() === 0) {
-//     return 1394;
-//   }
-// }
-
-const columns = [
-  {
-    title: "File Name",
-    dataIndex: "fileName",
-    key: "fileName"
-  },
-  {
-    title: "Gender",
-    dataIndex: "genderStr",
-    key: "genderStr"
-  },
-  {
-    title: "Link",
-    dataIndex: "link",
-    key: "link",
-    render: (text, record) =>
-      record.status == 2 ? (
-        <a
-          href={`http://10.169.168.37/urban-outfitters/download-excel-2?fileName=${record.path}`}
-          target="_blank"
-        >
-          DownLoad
-        </a>
-      ) : (
-        <span>Get excel in 1.5 hours...</span>
-      )
-  },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    render: text => <a>{text == 2 ? "done" : "in progress"}</a>
-  },
-  {
-    title: "CreatedOn",
-    dataIndex: "day",
-    key: "day",
-    defaultSortOrder: "descend",
-    sorter: (a, b) => a.day - b.day
+const props = {
+  name: "file",
+  multiple: true,
+  action: "/wind-server/upload",
+  onChange(info) {
+    const { status } = info.file;
+    if (status !== "uploading") {
+      console.log(info.file, info.fileList);
+    }
+    if (status === "done") {
+      message.success(`${info.file.name} file uploaded successfully.`);
+    } else if (status === "error") {
+      message.error(`${info.file.name} file upload failed.`);
+    }
   }
-];
+};
 
 class App extends PureComponent {
   constructor() {
@@ -93,38 +59,7 @@ class App extends PureComponent {
     };
   }
 
-  componentDidMount() {
-    const _this = this;
-    axios
-      .get("/urban-outfitters/get-data-2")
-      .then(function(response) {
-        _this.setState({
-          months: response.data.data,
-          iconLoading:
-            findIndex(response.data.data, { status: "1" }) != -1 ? true : false
-        });
-      })
-      .catch(function(error) {
-        _this.setState({
-          months: []
-        });
-      })
-      .finally(function() {});
-  }
-
-  onSelectMonth = (month, gender) => {
-    // const month = value.month();
-    window.open(
-      `http://10.169.168.37/urban-outfitters/download-excel?month=${month}&gender=${gender}`,
-      "_blank"
-    );
-  };
-
-  showModal = () => {
-    this.setState({
-      visible: true
-    });
-  };
+  componentDidMount() {}
 
   handleOk = e => {
     const _this = this;
@@ -155,58 +90,24 @@ class App extends PureComponent {
   };
 
   render() {
-    const { months } = this.state;
+    // const { months } = this.state;
     return (
       <Layout>
         <Content style={{ padding: "0 50px", marginTop: 64 }}>
-          <div style={{ background: "#fff", padding: 24, minHeight: 380 }}>
-            <Divider orientation="left">
-              <Title level={3}>
-                Scraping Data and generating Excel by yourself
-              </Title>
-            </Divider>
-            <Alert
-              message="If the crawling process has been started it will takes 1.5 hours, please wait patiently and getting files later"
-              type="error"
-              style={{ margin: "16px 0" }}
-            />
-            <Button
-              type="primary"
-              onClick={this.showModal}
-              loading={this.state.iconLoading}
-            >
-              {this.state.iconLoading ? "crawling" : "get started"}
-            </Button>
-            <Modal
-              title="Scraping & Generating"
-              visible={this.state.visible}
-              onOk={this.handleOk}
-              onCancel={this.handleCancel}
-              keyboard={false}
-              maskClosable={false}
-              closable={false}
-              width={500}
-              okText="OK"
-            >
-              <Title level={3}>Press OK button to start</Title>
-              <Alert
-                message="If the process has been started 
-                The entire crawling process will takes 1.5 hours, please wait patiently and getting files later"
-                type="error"
-              />
-            </Modal>
-            <Divider orientation="left">
-              <Title level={3}>Excel List</Title>
-            </Divider>
-            <Table dataSource={months} columns={columns} pagination={false} />
-          </div>
+          <Dragger {...props}>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">
+              Click or drag file to this area to upload
+            </p>
+            {/* <p className="ant-upload-hint">
+              Support for a single or bulk upload. Strictly prohibit from
+              uploading company data or other band files
+            </p> */}
+          </Dragger>
         </Content>
-        <Footer style={{ textAlign: "center" }}>
-          Scraping data from{" "}
-          <a href="https://www.urbanoutfitters.com/" target="_blank">
-            https://www.urbanoutfitters.com/
-          </a>
-        </Footer>
+        <Footer style={{ textAlign: "center" }}>PDF Comparison</Footer>
       </Layout>
     );
   }

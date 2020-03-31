@@ -15,7 +15,7 @@ const proceed = require('./proceed');
 
 // require('./service').createExcel('20200323');
 
-require('./service').createExcelChart('20200323');
+// require('./service').createExcelChart('20200323');
 // proceed.transfer('20200323');
 
 const app = new Koa();
