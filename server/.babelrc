@@ -1,0 +1,15 @@
+{
+  "ignore": ["node_modules"],
+  "plugins": ["@babel/plugin-proposal-class-properties"],
+  "presets": [
+    [
+      "@babel/env",
+      {
+        "modules": "commonjs",
+        "targets": {
+          "node": true
+        }
+      }
+    ]
+  ]
+}
