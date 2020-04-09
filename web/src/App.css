@@ -2,7 +2,14 @@
 .App {
   text-align: center;
 }
-
+.example {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  margin-bottom: 20px;
+  padding: 30px 50px;
+  margin: 20px 0;
+}
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -12,6 +19,11 @@
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+
+.site-card-wrapper {
+  background: #ececec;
+  padding: 30px;
 }
 
 .App-header {

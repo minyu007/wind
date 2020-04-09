@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import {
+  Spin,
   Badge,
   Calendar,
   Divider,
@@ -16,7 +17,10 @@ import {
   Table,
   Tag,
   Upload,
-  message
+  message,
+  Card,
+  Col,
+  Row
 } from "antd";
 
 import axios from "axios";
@@ -32,6 +36,8 @@ const { Step } = Steps;
 const { Text } = Typography;
 const { Dragger } = Upload;
 
+let fileList = [];
+
 const props = {
   name: "file",
   multiple: true,
@@ -40,6 +46,8 @@ const props = {
     const { status } = info.file;
     if (status !== "uploading") {
       console.log(info.file, info.fileList);
+      fileList = info.fileList.map(v => v.name);
+      console.log(fileList);
     }
     if (status === "done") {
       message.success(`${info.file.name} file uploaded successfully.`);
@@ -53,30 +61,43 @@ class App extends PureComponent {
   constructor() {
     super();
     this.state = {
-      months: [],
-      iconLoading: false,
-      visible: false
+      loading: false,
+      visible: false,
+      pdfs: ""
     };
   }
 
   componentDidMount() {}
 
+  showModal = () => {
+    this.setState({
+      visible: true
+    });
+  };
+
   handleOk = e => {
     const _this = this;
+    if (!fileList.length) {
+      this.setState({
+        visible: false,
+        loading: false
+      });
+      return;
+    }
     axios
-      .get("/urban-outfitters/gotoScrape")
+      .post("/wind-server/compare", { fileList })
       .then(function(response) {
+        console.log(response);
         _this.setState({
-          months: response.data.data,
           visible: false,
-          iconLoading: true
+          loading: true,
+          pdfs: response.data.data.map(v => v.text)
         });
       })
       .catch(function(error) {
         _this.setState({
-          months: [],
           visible: false,
-          iconLoading: false
+          loading: false
         });
       })
       .finally(function() {});
@@ -85,27 +106,64 @@ class App extends PureComponent {
   handleCancel = e => {
     this.setState({
       visible: false,
-      iconLoading: false
+      loading: false
     });
   };
 
   render() {
-    // const { months } = this.state;
+    const { pdfs } = this.state;
     return (
       <Layout>
         <Content style={{ padding: "0 50px", marginTop: 64 }}>
-          <Dragger {...props}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">
-              Click or drag file to this area to upload
-            </p>
-            {/* <p className="ant-upload-hint">
-              Support for a single or bulk upload. Strictly prohibit from
-              uploading company data or other band files
-            </p> */}
-          </Dragger>
+          <div style={{ background: "#fff", padding: 24, minHeight: 380 }}>
+            <Divider orientation="left">
+              <Title level={3}>
+                please upload the PDFs you wanna to compare
+              </Title>
+            </Divider>
+            <Button type="primary" onClick={this.showModal}>
+              Upload
+            </Button>
+            <Modal
+              title="PDF Files"
+              visible={this.state.visible}
+              onOk={this.handleOk}
+              onCancel={this.handleCancel}
+            >
+              <Dragger {...props}>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  Click or drag PDF to this area to upload
+                </p>
+              </Dragger>
+            </Modal>
+            <Divider orientation="left">
+              <Title level={3}>Results</Title>
+            </Divider>
+            <div className="site-card-wrapper">
+              {this.loading ? (
+                <div className="example">
+                  <Spin />
+                </div>
+              ) : (
+                <>
+                  <Row gutter={16}></Row>
+                  <Row gutter={16}>
+                    {pdfs &&
+                      pdfs.map((v, i) => (
+                        <Col span={8}>
+                          <Card title={`PDF${i}`} bordered={false}>
+                            <div> {v}</div>
+                          </Card>
+                        </Col>
+                      ))}
+                  </Row>
+                </>
+              )}
+            </div>
+          </div>
         </Content>
         <Footer style={{ textAlign: "center" }}>PDF Comparison</Footer>
       </Layout>
